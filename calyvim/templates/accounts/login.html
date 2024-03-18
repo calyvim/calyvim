@@ -1,0 +1,31 @@
+{% extends 'base/minimal.html' %}
+
+{% block main %}
+<div class="d-flex justify-content-center align-items-center" style="height: 90vh;">
+    <div class="card border-0 shadow col-3">
+        <div class="card-body py-4 px-4">
+            <form>
+                <div class="d-flex justify-content-center mb-3">
+                    <h5>Log in</h5>
+                </div>
+                <div class="mb-4">
+                    <label for="username" class="form-label">Username or Email</label>
+                    <input type="text" class="form-control" id="username" required name="username">
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <label for="password" class="form-label">Password</label>
+                        <label class="form-label form-text">
+                            Forgot your password?
+                        </label>
+                    </div>
+                    <input type="password" class="form-control" id="password" required name="password" minlength="6">
+                </div>
+                <div class="d-grid">
+                    <button class="btn btn-dark mt-2">Login</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock main %}

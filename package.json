@@ -1,0 +1,18 @@
+{
+  "name": "calyvim",
+  "version": "1.0.0",
+  "description": "Open source scheduling software.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "sass --watch calyvim/static/scss/bootstrap.scss calyvim/static/bundle/bootstrap.css",
+    "build": "sass calyvim/static/scss/bootstrap.scss calyvim/static/bundle/bootstrap.css"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "bootstrap": "^5.3.3",
+    "sass": "^1.72.0"
+  }
+}

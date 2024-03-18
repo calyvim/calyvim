@@ -1,0 +1,4 @@
+-r requirements.txt
+
+black==24.3.0
+django-debug-toolbar==4.3.0
