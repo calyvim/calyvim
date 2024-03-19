@@ -4,10 +4,14 @@
 <div class="d-flex justify-content-center align-items-center" style="height: 90vh;">
     <div class="card border-0 shadow col-3">
         <div class="card-body py-4 px-4">
-            <form>
+            <form action="{% url 'register' %}" method="post">
+                {% csrf_token %}
                 <div class="d-flex justify-content-center mb-3">
                     <h5>Get started</h5>
                 </div>
+
+                {% include 'partials/_alerts.html' %}
+
                 <div class="mb-2">
                     <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
                     {{ form.username }}
@@ -24,12 +28,15 @@
                     <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
                     {{ form.password }}
                 </div>
-                <div class="mb-3">
-                    <label for="{{ form.timezone.id_for_label }}" class="form-label">Timezone</label>
-                    {{ form.timezone }}
+                <!-- Recaptcha -->
+                {% if recaptcha_enabled %}
+                <div class="d-flex justify-content-center">
+                    <div class="cf-turnstile" data-sitekey="{{ recaptcha_site_key }}" data-theme="light" data-response-field-name="recaptcha_response"></div>
                 </div>
+                {% endif %}
+
                 <div class="d-grid">
-                    <button class="btn btn-dark mt-2">Register</button>
+                    <button class="btn btn-dark mt-2" type="submit">Register</button>
                 </div>
             </form>
 
@@ -40,3 +47,7 @@
     </div>
 </div>
 {% endblock main %}
+
+{% block script %}
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js"></script>
+{% endblock script %}

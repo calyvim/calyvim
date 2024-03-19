@@ -1,7 +1,7 @@
 import pytz
 from django.db import models
 from django.utils import timezone
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
 
 from calyvim.models.base import BaseUUIDTimestampModel
@@ -19,10 +19,10 @@ class UserManager(BaseUserManager):
         return user
 
     def create_superuser(self, username, email, full_name, password):
-        user = self.create_user(username, email, full_name)
+        user = self.create_user(username, email, full_name, password)
         user.is_staff = True
-        user.save(using=self._db)
         user.verified_at = timezone.now()
+        user.save(using=self._db)
         return user
 
 
