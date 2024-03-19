@@ -1,0 +1,42 @@
+{% extends 'base/minimal.html' %}
+
+{% block main %}
+<div class="d-flex justify-content-center align-items-center" style="height: 90vh;">
+    <div class="card border-0 shadow col-3">
+        <div class="card-body py-4 px-4">
+            <form>
+                <div class="d-flex justify-content-center mb-3">
+                    <h5>Get started</h5>
+                </div>
+                <div class="mb-2">
+                    <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
+                    {{ form.username }}
+                </div>
+                <div class="mb-2">
+                    <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
+                    {{ form.email }}
+                </div>
+                <div class="mb-2">
+                    <label for="{{ form.full_name.id_for_label }}" class="form-label">Full name</label>
+                    {{ form.full_name }}
+                </div>
+                <div class="mb-3">
+                    <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
+                    {{ form.password }}
+                </div>
+                <div class="mb-3">
+                    <label for="{{ form.timezone.id_for_label }}" class="form-label">Timezone</label>
+                    {{ form.timezone }}
+                </div>
+                <div class="d-grid">
+                    <button class="btn btn-dark mt-2">Register</button>
+                </div>
+            </form>
+
+            <div class="d-flex justify-content-center my-2">
+                <div class="form-text">Already have an account? <a href="{% url 'login' %}">Log in</a></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock main %}
