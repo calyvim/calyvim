@@ -1,18 +1,25 @@
+import jwt
 from django.views import View
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.db.models import Q
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.conf import settings
+from django.http import Http404
+from django.utils import timezone
 
 from calyvim.forms.accounts import RegisterForm
 from calyvim.models.user import User
 from calyvim.mixins import UserVerificationWarningMixin
+from calyvim.tasks import send_confirmation_email
 
 
 class LoginView(View):
     def get(self, request):
         return render(request, "accounts/login.html")
+
+    def post(self, request):
+        pass
 
 
 class RegisterView(View):
@@ -33,8 +40,14 @@ class RegisterView(View):
         if not form.is_valid():
             messages.warning(request, "Please enter valid information.")
             return redirect("register")
-
         data = form.cleaned_data
+
+        # Verify Recaptcha
+        recaptcha_response = data.pop("recaptcha_response")
+        if settings.RECAPTCHA_ENABLED:
+            # Verify recaptcha
+            pass
+
         existing_user = User.objects.filter(
             Q(username=data.get("username")) | Q(email=data.get("email"))
         ).first()
@@ -47,10 +60,38 @@ class RegisterView(View):
         password = data.pop("password")
         user = User(**data)
         user.set_password(password)
-
+        user.save()
+        send_confirmation_email.delay(user.email)
         messages.success(
             request, "We have sent an verification link to verify your email."
         )
+        return redirect("login")
+
+
+class EmailConfirmView(View):
+    def get(self, request, token):
+        try:
+            data = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+
+            user = User.objects.filter(
+                email=data.get("email"), verified_at__isnull=True
+            ).first()
+
+            if not user:
+                raise Http404("Invalid email confirmation URL")
+
+            user.verified_at = timezone.now()
+            user.save()
+
+        except jwt.ExpiredSignatureError:
+            messages.warning(request, "Your invitation link has been expired.")
+            return redirect("login")
+
+        except Exception:
+            messages.error(request, "Something wen't wrong while verifying email.")
+            return redirect("login")
+
+        messages.success(request, "Email has been verified. Please login to proceed.")
         return redirect("login")
 
 

@@ -1,8 +1,11 @@
 import pytz
+import jwt
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
+from django.conf import settings
+from django.urls import reverse
 
 from calyvim.models.base import BaseUUIDTimestampModel
 
@@ -86,3 +89,13 @@ class User(BaseUUIDTimestampModel, AbstractBaseUser):
         "Does the user have permissions to view the app `app_label`?"
         # Simplest possible answer: Yes, always
         return True
+
+    def email_confirmation_token(self, expiry=None):
+        if not expiry:
+            expiry = timezone.now() + timezone.timedelta(days=1)
+        confirmation_token = jwt.encode(
+            payload={"email": self.email, "exp": expiry},
+            key=settings.SECRET_KEY,
+            algorithm="HS256",
+        )
+        return confirmation_token

@@ -1,0 +1,14 @@
+<div>
+    <p>Hi {{ user.full_name }},</p>
+    <p>Thank you for signing up with Calyvim! To complete your registration and start using our services, please verify
+        your email address by clicking the button below.</p>
+    <p>
+        <a href="{{ email_confirmation_url }}" class="button">Verify Email</a>
+    </p>
+    <p>If you can't click the button, please copy and paste the following link into your web browser:</p>
+    <p>{{ email_confirmation_url }}</p>
+    <p>This verification link is valid for 24 hours. If you don't verify your email within this timeframe, you'll need
+        to request a new verification code.</p>
+    <p>Sincerely,</p>
+    <p>The Calyvim Team</p>
+</div>

@@ -12,3 +12,5 @@ django-cors-headers==4.3.1
 whitenoise==6.6.0
 dj-database-url==2.1.0
 sentry-sdk==1.42.0
+PyJWT==2.8.0
+aiosmtpd==1.4.5
