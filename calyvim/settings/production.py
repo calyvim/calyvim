@@ -5,6 +5,7 @@ import sentry_sdk
 from calyvim.settings.base import *
 
 ALLOWED_HOSTS = ["calyvim.com", "calyvim-8179bcb6855b.herokuapp.com"]
+CSRF_TRUSTED_ORIGINS = ["https://calyvim.com", "https://calyvim-8179bcb6855b.herokuapp.com"]
 DEBUG = False
 SECRET_KEY = os.environ.get("SECRET_KEY")
 SITE_URL = os.environ.get("SITE_URL", "https://calyvim.com")
