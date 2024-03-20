@@ -27,7 +27,7 @@ def send_confirmation_email(email):
         subject="Calyvim | Email verification",
         html_message=email_template,
         message=striptags(email_template),
-        fail_silently=True,
+        fail_silently=False,
         recipient_list=[user.email],
         from_email="no-reply@calyvim.com",
     )
