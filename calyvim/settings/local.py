@@ -12,7 +12,6 @@ RECAPTCHA_SITE_KEY = os.environ.get("RECAPTCHA_SITE_KEY", "0x4AAAAAAAVK*********
 RECAPTCH_SECRET_KEY = os.environ.get("RECAPTCH_SECRET_KEY", "0x4AAAAAA*****************")
 RECAPTCHA_ENABLED = False
 
-# EMAIL
 EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
 EMAIL_FILE_PATH = BASE_DIR / "media" / "emails"  # change this to a proper location
 
