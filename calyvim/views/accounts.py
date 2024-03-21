@@ -4,22 +4,61 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.db.models import Q
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth import login, logout
 from django.conf import settings
 from django.http import Http404
 from django.utils import timezone
 
-from calyvim.forms.accounts import RegisterForm
+from calyvim.forms.accounts import RegisterForm, LoginForm
 from calyvim.models.user import User
-from calyvim.mixins import UserVerificationWarningMixin
 from calyvim.tasks import send_confirmation_email
 
 
 class LoginView(View):
     def get(self, request):
-        return render(request, "accounts/login.html")
+        form = LoginForm()
+        return render(request, "accounts/login.html", {"form": form})
 
     def post(self, request):
-        pass
+        form = LoginForm(data=request.POST)
+        if not form.is_valid():
+            messages.error(request, "Please enter valid login information.")
+            return redirect("login")
+
+        data = form.cleaned_data
+        if "@" in data.get("username_or_email"):
+            kwargs = {"email": data.get("username_or_email")}
+        else:
+            kwargs = {"username": data.get("username_or_email")}
+
+        user = User.objects.filter(**kwargs).first()
+
+        if not user:
+            messages.warning(
+                request, "No account found with the given username or email."
+            )
+            return redirect("login")
+
+        if not user.check_password(data.get("password")):
+            messages.warning(request, "Invalid credentials entered.")
+            return redirect("login")
+
+        if not user.is_active:
+            messages.error(
+                request,
+                "Your account has been temporarily disabled. Please contact our support team for further assistance.",
+            )
+            return redirect("login")
+
+        if user.is_password_expired:
+            messages.warning(
+                request,
+                "Please reset your password by selecting 'Forgot your password?' to log in.",
+            )
+            return redirect("login")
+
+        login(request, user)
+        return redirect("event-list")
 
 
 class RegisterView(View):
@@ -65,7 +104,8 @@ class RegisterView(View):
         messages.success(
             request, "We have sent an verification link to verify your email."
         )
-        return redirect("login")
+        login(request, user)
+        return redirect("event-list")
 
 
 class EmailConfirmView(View):
@@ -91,10 +131,10 @@ class EmailConfirmView(View):
             messages.error(request, "Something wen't wrong while verifying email.")
             return redirect("login")
 
-        messages.success(request, "Email has been verified. Please login to proceed.")
-        return redirect("login")
+        login(request, user)
+        return redirect("event-list")
 
 
-class ProfileView(LoginRequiredMixin, UserVerificationWarningMixin, View):
+class ProfileView(LoginRequiredMixin, View):
     def get(self, request):
         return render(request, "accounts/profile.html")

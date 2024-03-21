@@ -29,5 +29,5 @@ def send_confirmation_email(email):
         message=striptags(email_template),
         fail_silently=False,
         recipient_list=[user.email],
-        from_email="no-reply@calyvim.com",
+        from_email="Calyvim <no-reply@calyvim.com>",
     )
