@@ -24,7 +24,7 @@ class UserManager(BaseUserManager):
     def create_superuser(self, username, email, full_name, password):
         user = self.create_user(username, email, full_name, password)
         user.is_staff = True
-        user.verified_at = timezone.now()
+        user.confirmed_at = timezone.now()
         user.save(using=self._db)
         return user
 
@@ -64,8 +64,15 @@ class User(BaseUUIDTimestampModel, AbstractBaseUser):
     )
     timezone = models.CharField(max_length=50, choices=TIMEZONE_CHOICES, default="UTC")
 
-    verified_at = models.DateTimeField(
-        verbose_name="verified on", blank=True, null=True
+    confirmed_at = models.DateTimeField(
+        verbose_name="confirmed at",
+        blank=True,
+        null=True,
+        help_text="Determines when the account was verified.",
+    )
+
+    google_identity_uid = models.CharField(
+        verbose_name="Google Identity UID", max_length=150, blank=True, null=True
     )
 
     objects = UserManager()
