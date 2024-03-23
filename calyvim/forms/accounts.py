@@ -6,10 +6,10 @@ from django.core.exceptions import ValidationError
 
 class LoginForm(forms.Form):
     username_or_email = forms.CharField(
-        widget=forms.TextInput(attrs={"class": "form-control"})
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "alison or alison@gmail.com"})
     )
     password = forms.CharField(
-        widget=forms.TextInput(attrs={"class": "form-control", "type": "password"})
+        widget=forms.TextInput(attrs={"class": "form-control", "type": "password", "placeholder": "Password"})
     )
 
 

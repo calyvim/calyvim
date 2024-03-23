@@ -1,4 +1,9 @@
 import jwt
+import uuid
+import httpx
+import random
+from urllib.parse import urlencode
+from django.utils.text import slugify
 from django.views import View
 from django.shortcuts import render, redirect
 from django.contrib import messages
@@ -8,6 +13,7 @@ from django.contrib.auth import login, logout
 from django.conf import settings
 from django.http import Http404
 from django.utils import timezone
+from django.urls import reverse
 
 from calyvim.forms.accounts import RegisterForm, LoginForm
 from calyvim.models.user import User
@@ -120,7 +126,7 @@ class EmailConfirmView(View):
             if not user:
                 raise Http404("Invalid email confirmation URL")
 
-            user.verified_at = timezone.now()
+            user.confirmed_at = timezone.now()
             user.save()
 
         except jwt.ExpiredSignatureError:
@@ -131,8 +137,68 @@ class EmailConfirmView(View):
             messages.error(request, "Something wen't wrong while verifying email.")
             return redirect("login")
 
+        # Send Welcome email.
+
         login(request, user)
         return redirect("event-list")
+
+
+class LogoutView(View):
+    def get(self, request):
+        logout(request)
+        return redirect("index")
+
+
+class GoogleOAuthView(View):
+    def get(self, request):
+        base_url = "https://accounts.google.com/o/oauth2/v2/auth?"
+        params = {
+            "scope": "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile openid",
+            "access_type": "offline",
+            "included_granted_scopes": "true",
+            "response_type": "code",
+            "redirect_uri": f"{settings.SITE_URL}{reverse('google-oauth-callback')}",
+            "state": uuid.uuid4().hex,
+            "client_id": settings.GOOGLE_OAUTH_CLIENT_ID,
+        }
+        redirect_url = base_url + urlencode(params)
+        return redirect(redirect_url)
+
+
+class GoogleOAuthCallbackView(View):
+    def get(self, request):
+        code = request.GET.get("code")
+        data = {
+            "code": code,
+            "client_id": settings.GOOGLE_OAUTH_CLIENT_ID,
+            "client_secret": settings.GOOGLE_OAUTH_CLIENT_SECRET,
+            "redirect_uri": f"{settings.SITE_URL}{reverse('google-oauth-callback')}",
+            "grant_type": "authorization_code",
+        }
+
+        google_token_response = httpx.post(
+            url="https://oauth2.googleapis.com/token",
+            data=data,
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+        access_token = google_token_response.json().get("access_token")
+        google_profile_res = httpx.get(
+            url="https://www.googleapis.com/userinfo/v2/me",
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        profile = google_profile_res.json()
+        user = User.objects.filter(email=profile.get("email")).first()
+        if not user:
+            user = User(
+                username=slugify(profile.get("name")) + str(random.randint(1000, 9999)),
+                email=profile.get("email"),
+                full_name=profile.get("name"),
+                confirmed_at=timezone.now(),
+            )
+        user.google_identity_uid = profile.get("id")
+        user.save()
+        login(request, user)
+        return redirect("index")
 
 
 class ProfileView(LoginRequiredMixin, View):
