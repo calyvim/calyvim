@@ -8,6 +8,9 @@ from calyvim.views.accounts import (
     EmailConfirmView,
     GoogleOAuthCallbackView,
     GoogleOAuthView,
+    ConnectedAccountGoogle,
+    ConnectedAccountGoogleCallback,
+    ConnectedAccountGoogleRevoke,
 )
 
 urlpatterns = [
@@ -25,5 +28,20 @@ urlpatterns = [
         "google/oauth/callback/",
         GoogleOAuthCallbackView.as_view(),
         name="google-oauth-callback",
+    ),
+    path(
+        "connected-accounts/google/",
+        ConnectedAccountGoogle.as_view(),
+        name="connected-accounts-google",
+    ),
+    path(
+        "connected-accounts/google/callback/",
+        ConnectedAccountGoogleCallback.as_view(),
+        name="connected-accounts-google-callback",
+    ),
+    path(
+        "connected-accounts/google/revoke/",
+        ConnectedAccountGoogleRevoke.as_view(),
+        name="connected-accounts-google-revoke",
     ),
 ]

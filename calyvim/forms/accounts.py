@@ -6,10 +6,18 @@ from django.core.exceptions import ValidationError
 
 class LoginForm(forms.Form):
     username_or_email = forms.CharField(
-        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "alison or alison@gmail.com"})
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "placeholder": "alison or alison@gmail.com"}
+        )
     )
     password = forms.CharField(
-        widget=forms.TextInput(attrs={"class": "form-control", "type": "password", "placeholder": "Password"})
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "type": "password",
+                "placeholder": "Password",
+            }
+        )
     )
 
 
@@ -39,3 +47,14 @@ class RegisterForm(forms.Form):
     #         )
     #         if not res.status_code == 200:
     #             raise ValidationError("Re-captcha validation failed!")
+
+
+class ProfileForm(forms.Form):
+    username = forms.CharField(
+        required=True,
+        widget=forms.TextInput(attrs={"class": "form-control", "type": "text"}),
+    )
+    full_name = forms.CharField(
+        required=True,
+        widget=forms.TextInput(attrs={"class": "form-control", "type": "text"}),
+    )
