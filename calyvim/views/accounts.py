@@ -11,12 +11,12 @@ from django.db.models import Q
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import login, logout
 from django.conf import settings
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.utils import timezone
 from django.urls import reverse
 
-from calyvim.forms.accounts import RegisterForm, LoginForm
-from calyvim.models.user import User
+from calyvim.forms.accounts import RegisterForm, LoginForm, ProfileForm
+from calyvim.models import User, ConnectedAccount
 from calyvim.tasks import send_confirmation_email
 
 
@@ -152,8 +152,13 @@ class LogoutView(View):
 class GoogleOAuthView(View):
     def get(self, request):
         base_url = "https://accounts.google.com/o/oauth2/v2/auth?"
+        scopes = [
+            "https://www.googleapis.com/auth/userinfo.email",
+            "https://www.googleapis.com/auth/userinfo.profile",
+            "openid",
+        ]
         params = {
-            "scope": "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile openid",
+            "scope": " ".join(scopes),
             "access_type": "offline",
             "included_granted_scopes": "true",
             "response_type": "code",
@@ -203,4 +208,98 @@ class GoogleOAuthCallbackView(View):
 
 class ProfileView(LoginRequiredMixin, View):
     def get(self, request):
-        return render(request, "accounts/profile.html")
+        form = ProfileForm(
+            initial={
+                "username": request.user.username,
+                "full_name": request.user.full_name,
+            }
+        )
+        context = {
+            "form": form,
+            "has_google_connected": request.user.connected_accounts.exists(),
+        }
+        return render(request, "accounts/profile.html", context)
+
+
+class ConnectedAccountGoogle(LoginRequiredMixin, View):
+    def get(self, request):
+        next_path = request.GET.get("next_path", None)
+        base_url = "https://accounts.google.com/o/oauth2/v2/auth?"
+        params = {
+            "scope": "https://www.googleapis.com/auth/calendar",
+            "access_type": "offline",
+            "included_granted_scopes": "true",
+            "response_type": "code",
+            "redirect_uri": f"{settings.SITE_URL}{reverse('connected-accounts-google-callback')}",
+            "client_id": settings.GOOGLE_OAUTH_CLIENT_ID,
+        }
+        if next_path:
+            params["state"] = next_path
+        redirect_url = base_url + urlencode(params)
+        return redirect(redirect_url)
+
+
+class ConnectedAccountGoogleCallback(LoginRequiredMixin, View):
+    def get(self, request):
+        code = request.GET.get("code")
+        data = {
+            "code": code,
+            "client_id": settings.GOOGLE_OAUTH_CLIENT_ID,
+            "client_secret": settings.GOOGLE_OAUTH_CLIENT_SECRET,
+            "redirect_uri": f"{settings.SITE_URL}{reverse('connected-accounts-google-callback')}",
+            "grant_type": "authorization_code",
+        }
+
+        google_token_response = httpx.post(
+            url="https://oauth2.googleapis.com/token",
+            data=data,
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+
+        print(google_token_response.json())
+
+        data = google_token_response.json()
+        connected_account = ConnectedAccount.objects.filter(
+            user=request.user, service=ConnectedAccount.Service.GOOGLE
+        ).first()
+        if not connected_account:
+            connected_account = ConnectedAccount(
+                user=request.user, service=ConnectedAccount.Service.GOOGLE
+            )
+
+        connected_account.access_token = data["access_token"]
+        connected_account.refresh_token = data["refresh_token"]
+        connected_account.expiry_date = timezone.now() + timezone.timedelta(
+            seconds=data["expires_in"]
+        )
+        connected_account.save()
+
+        next_path = request.GET.get("next")
+        if next_path:
+            return redirect(next_path)
+
+        return redirect("profile")
+
+
+class ConnectedAccountGoogleRevoke(LoginRequiredMixin, View):
+    def get(self, request):
+        connected_account = ConnectedAccount.objects.filter(
+            user=request.user, service=ConnectedAccount.Service.GOOGLE
+        ).first()
+
+        if not connected_account:
+            raise Http404()
+
+        res = httpx.post(
+            url=f"https://oauth2.googleapis.com/revoke?token={connected_account.refresh_token}"
+        )
+
+        if not res.status_code == 200:
+            raise Http404()
+
+        connected_account.delete()
+
+        if request.GET.get("next_path"):
+            return redirect(request.GET.get("next_path"))
+
+        return redirect("profile")
