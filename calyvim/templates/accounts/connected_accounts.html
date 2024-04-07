@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% load django_vite %}
+
+{% block title %}
+Calyvim | Connected Accounts
+{% endblock title %}
+
+{% block assets %}
+{% vite_asset 'entrypoints/accounts/connected_accounts.js' %}
+{% endblock assets %}

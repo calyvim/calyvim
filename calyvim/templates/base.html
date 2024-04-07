@@ -1,0 +1,44 @@
+{% load static %}
+{% load django_vite %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon">
+    <title>
+        {% block title %}
+        Calyvim
+        {% endblock title %}
+    </title>
+
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    {% block style %}
+    {% endblock style %}
+
+    <!-- Vite Hot Reloading -->
+    {% vite_hmr_client %}
+
+    {% block assets %}
+    {% endblock assets %}
+</head>
+
+<body>
+    <!-- Main Block -->
+    {% block main %}
+    {% endblock main %}
+
+    <!-- Vue App -->
+    <div id="app">
+    </div>
+    {{ vue_props|json_script:"vue-props"}}
+
+    <script src="{% static 'js/base.js' %}"></script>
+    <!-- Additional scripts -->
+    {% block script %}
+    {% endblock script %}
+</body>
+
+</html>

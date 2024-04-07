@@ -1,12 +1,25 @@
 import os
 import dj_database_url
 import sentry_sdk
+import re
 
 from calyvim.settings.base import *
 
-ALLOWED_HOSTS = ["calyvim.com", "calyvim-8179bcb6855b.herokuapp.com"]
-CSRF_TRUSTED_ORIGINS = ["https://calyvim.com", "https://calyvim-8179bcb6855b.herokuapp.com"]
+# Vite generates files with 8 hash digits
+# http://whitenoise.evans.io/en/stable/django.html#WHITENOISE_IMMUTABLE_FILE_TEST
+
+def immutable_file_test(path, url):
+    # Match filename with 12 hex digits before the extension
+    # e.g. app.db8f2edc0c8a.js
+    return re.match(r"^.+[\.\-][0-9a-f]{8,12}\..+$", url)
+
 DEBUG = False
+
+ALLOWED_HOSTS = ["calyvim.com", "calyvim-81593360e924.herokuapp.com"]
+CSRF_TRUSTED_ORIGINS = ["https://calyvim.com", "https://calyvim-81593360e924.herokuapp.com"]
+CORS_ALLOWED_ORIGINS = ["calyvim.com", "calyvim-81593360e924.herokuapp.com"]
+CORS_URLS_REGEX = r"^/api/.*$"
+
 SECRET_KEY = os.environ.get("SECRET_KEY")
 SITE_URL = os.environ.get("SITE_URL", "https://calyvim.com")
 
@@ -36,3 +49,8 @@ CELERY_TIMEZONE = "UTC"
 
 GOOGLE_OAUTH_CLIENT_ID = os.environ.get("GOOGLE_OAUTH_CLIENT_ID")
 GOOGLE_OAUTH_CLIENT_SECRET = os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET")
+
+# Django Vite Setup
+DJANGO_VITE_DEV_MODE = False
+WHITENOISE_IMMUTABLE_FILE_TEST = immutable_file_test
+DJANGO_VITE_STATIC_URL_PREFIX = "dist"

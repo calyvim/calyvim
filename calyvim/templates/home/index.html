@@ -1,7 +1,10 @@
-{% extends 'base/landing.html' %}
+{% extends 'base.html' %}
+{% load django_vite %}
 
-{% block main %}
-<h3>Launching Calyvim Soon!!</h3>
-<!-- <div class="d-flex justify-content-center align-items-center" style="height: 90vh;">
-</div> -->
-{% endblock main %}
+{% block title %}
+Calyvim | Register
+{% endblock title %}
+
+{% block assets %}
+{% vite_asset 'entrypoints/home/index.js' %}
+{% endblock assets %}

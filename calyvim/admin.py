@@ -5,7 +5,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.core.exceptions import ValidationError
 
-from calyvim.models import User
+from calyvim.models import User, Schedule, ScheduleAvailability, Event
 
 
 class UserCreationForm(forms.ModelForm):
@@ -64,7 +64,7 @@ class UserAdmin(BaseUserAdmin):
     fieldsets = [
         (None, {"fields": ["email", "password"]}),
         ("Personal info", {"fields": ["full_name"]}),
-        ("Permissions", {"fields": ["is_staff", "verified_at"]}),
+        ("Permissions", {"fields": ["is_staff", "confirmed_at"]}),
     ]
     # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
     # overrides get_fieldsets to use this attribute when creating a user.
@@ -73,13 +73,29 @@ class UserAdmin(BaseUserAdmin):
             None,
             {
                 "classes": ["wide"],
-                "fields": ["email", "full_name", "password1", "password2"],
+                "fields": ["username", "email", "full_name", "password1", "password2"],
             },
         ),
     ]
     search_fields = ["email"]
     ordering = ["email"]
     filter_horizontal = []
+
+
+class ScheduleAvailabilityInlineAdmin(admin.TabularInline):
+    model = ScheduleAvailability
+    extra = 0
+
+
+@admin.register(Schedule)
+class ScheduleAdmin(admin.ModelAdmin):
+    list_display = ["user", "name", "timezone", "created_at"]
+    inlines = [ScheduleAvailabilityInlineAdmin]
+
+
+@admin.register(Event)
+class EventAdmin(admin.ModelAdmin):
+    list_display = ["user", "name", "created_at"]
 
 
 # Now register the new UserAdmin...

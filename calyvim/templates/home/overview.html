@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% load django_vite %}
+
+{% block title %}
+Calyvim | Register
+{% endblock title %}
+
+{% block assets %}
+{% vite_asset 'entrypoints/home/overview.js' %}
+{% endblock assets %}

@@ -22,8 +22,13 @@ from calyvim.tasks import send_confirmation_email
 
 class LoginView(View):
     def get(self, request):
-        form = LoginForm()
-        return render(request, "accounts/login.html", {"form": form})
+        next_url = request.GET.get("next", "/")
+        context = {
+            "vue_props": {
+                "next_url": next_url
+            }
+        }
+        return render(request, "accounts/login.html", context)
 
     def post(self, request):
         form = LoginForm(data=request.POST)
@@ -69,14 +74,14 @@ class LoginView(View):
 
 class RegisterView(View):
     def get(self, request):
-        form = RegisterForm()
         return render(
             request,
             "accounts/register.html",
             {
-                "form": form,
-                "recaptcha_enabled": settings.RECAPTCHA_ENABLED,
-                "recaptcha_site_key": settings.RECAPTCHA_SITE_KEY,
+                "vue_props": {
+                    "recaptcha_enabled": settings.RECAPTCHA_ENABLED,
+                    "recaptcha_site_key": settings.RECAPTCHA_SITE_KEY,
+                }
             },
         )
 
@@ -111,7 +116,7 @@ class RegisterView(View):
             request, "We have sent an verification link to verify your email."
         )
         login(request, user)
-        return redirect("event-list")
+        return redirect("event-list-create")
 
 
 class EmailConfirmView(View):
@@ -140,7 +145,7 @@ class EmailConfirmView(View):
         # Send Welcome email.
 
         login(request, user)
-        return redirect("event-list")
+        return redirect("event-list-create")
 
 
 class LogoutView(View):
@@ -219,6 +224,16 @@ class ProfileView(LoginRequiredMixin, View):
             "has_google_connected": request.user.connected_accounts.exists(),
         }
         return render(request, "accounts/profile.html", context)
+    
+
+class ConnectedAccountsView(LoginRequiredMixin, View):
+    def get(self, request):
+        context = {
+            "vue_props": {
+
+            }
+        }
+        return render(request, "accounts/connected_accounts.html", context)
 
 
 class ConnectedAccountGoogle(LoginRequiredMixin, View):
